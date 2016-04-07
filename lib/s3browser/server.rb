@@ -13,12 +13,12 @@ module S3Browser
     get '/' do
       objects = store.get
 p objects
-      haml :index, locals: { objects: objects }
+      haml :index, locals: { title: 'S3Browser', objects: objects }
     end
 
     helpers do
       def store
-        @store ||= Store.new
+        @store ||= Store.new(bucket)
       end
 
       def bucket

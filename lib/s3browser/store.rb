@@ -5,9 +5,9 @@ module S3Browser
   class Store
     attr_reader :index, :type
 
-    def initialize(name = 's3browser')
-      @index = name
-      @type = 'objects'
+    def initialize(name)
+      @index = 'buckets'
+      @type = name
       begin
         client.indices.create index: index, body: {
           settings: {
