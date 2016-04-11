@@ -1,8 +1,12 @@
-# S3browser
+# S3Browser
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/s3browser`. To experiment with that code, run `bin/console` for an interactive prompt.
+The S3Browser is a simple wrapper around Amazon's [S3 Service](https://aws.amazon.com/s3/).
+Apart from listing files and managing, S3 doesn't give you a lot of functionality.
 
-TODO: Delete this and the text above, and describe your gem
+This wrapper gives you two killer functions:
+
+* [x] Search
+* [ ] Sorting
 
 ## Installation
 
@@ -22,7 +26,7 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Not sure yet :)
 
 ## Development
 
@@ -32,7 +36,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/s3browser.
+Bug reports and pull requests are welcome on GitHub at https://github.com/jrgns/s3browser.
 
 
 ## License
