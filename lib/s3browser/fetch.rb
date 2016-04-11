@@ -13,7 +13,7 @@ module S3Browser
 
         info = info.to_h.merge(object.to_h)
         info[:last_modified] = info[:last_modified].to_i
-        store.add info
+        store.add bucket, info
       end
     end
 
@@ -29,7 +29,7 @@ module S3Browser
 
     private
     def store
-      @store ||= Store.new(bucket)
+      @store ||= Store.new
     end
   end
 end

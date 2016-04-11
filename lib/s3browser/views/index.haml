@@ -1,17 +1,12 @@
 .panel.panel-primary
   .panel-heading
-    Objects
+    Buckets
   %table.table.table-bordered.table-striped.table-condensed
     %thead
       %tr
-        %th Key
-        %th Size
-        %th Type
-        %th Last Modified
+        %th Name
     %tbody
-      -objects.each do |obj|
+      -buckets.each do |bucket|
         %tr
-          %td= obj['key']
-          %td= obj['size']
-          %td= obj['content_type']
-          %td= Time.at(obj['last_modified']).strftime('%Y-%m-%d %H:%M:%S')
+          %td
+            %a{ href: "/#{bucket}" }= bucket

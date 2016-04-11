@@ -11,14 +11,19 @@ module S3Browser
     end
 
     get '/' do
-      objects = store.get
-p objects
-      haml :index, locals: { title: 'S3Browser', objects: objects }
+      buckets = store.buckets
+      haml :index, locals: { title: 'S3Browser', buckets: buckets }
+    end
+
+    get '/:bucket' do |bucket|
+      objects = params['q'] ? store.search(bucket, params['q']) : store.get(bucket)
+
+      haml :bucket, locals: { title: bucket, bucket: bucket, objects: objects, q: params['q'] }
     end
 
     helpers do
       def store
-        @store ||= Store.new(bucket)
+        Store.new
       end
 
       def bucket
