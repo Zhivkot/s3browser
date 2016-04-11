@@ -16,7 +16,8 @@ module S3Browser
     end
 
     get '/:bucket' do |bucket|
-      objects = params['q'] ? store.search(bucket, params['q']) : store.get(bucket)
+      params['q'] = nil if params['q'] == ''
+      objects = store.get(bucket, term: params['q'], sort: params['s'], direction: params['d'])
 
       haml :bucket, locals: { title: bucket, bucket: bucket, objects: objects, q: params['q'] }
     end
@@ -28,6 +29,30 @@ module S3Browser
 
       def bucket
         @bucket ||= ENV['AWS_S3_BUCKET']
+      end
+
+      def sort_url(field)
+        url = '?s=' + field
+        if params['s'] == field
+          if params['d'] == 'desc'
+            url = url + '&d=asc'
+          else
+            url = url + '&d=desc'
+          end
+        end
+        url
+      end
+
+      def sort_icon(field)
+        if params['s'] == field
+          if ['asc', 'desc'].include?(params['d'])
+            'fa-sort-' + params['d']
+          else
+            'fa-sort-asc'
+          end
+        else
+          'fa-sort'
+        end
       end
     end
 

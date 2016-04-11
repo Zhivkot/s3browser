@@ -19,16 +19,17 @@ module S3Browser
       client.index(index: index, type: 'objects', id: object[:key], body: object)
     end
 
-    def get(bucket, key = nil)
-      if key.nil?
-        client.search(index: index, type: 'objects', q: "bucket:#{bucket}")['hits']['hits'].map {|val| val['_source']}
-      else
+    def get(bucket, options)
+      body = get_body(bucket, options)
+      if options[:key]
         raise
+      else
+        client.search(index: index, type: 'objects', body: body)['hits']['hits'].map {|val| val['_source']}
       end
     end
 
-    def search(bucket, term)
-      client.search(index: index, type: 'objects', q: "bucket:#{bucket} AND (key:#{term} OR key.raw:#{term})")['hits']['hits'].map {|val| val['_source']}
+    def search(bucket, term, options = {})
+      get(bucket, {term: term}.merge(options))
     end
 
     def buckets
@@ -66,6 +67,35 @@ module S3Browser
 
         line
       end
+    end
+
+    private
+    def get_body(bucket, options = {})
+      body = {
+        query: {
+          bool: {
+            filter: {
+              terms: {
+                bucket: [ bucket ]
+              }
+            }
+          }
+        }
+      }
+
+      # Sort using the raw field
+      options[:sort] = 'key.raw' if options[:sort] == 'key'
+      body[:sort] = { options[:sort] => options[:direction] ? options[:direction] : 'asc'} if options[:sort]
+
+      if options[:term]
+        body[:query][:bool][:must] = {
+          simple_query_string: {
+            query: "key:#{options[:term]} OR key.raw:#{options[:term]}"
+          }
+        }
+      end
+
+      body
     end
 
     private

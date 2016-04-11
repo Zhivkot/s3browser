@@ -6,7 +6,7 @@ Apart from listing files and managing, S3 doesn't give you a lot of functionalit
 This wrapper gives you two killer functions:
 
 * [x] Search
-* [ ] Sorting
+* [x] Sorting
 
 ## Installation
 

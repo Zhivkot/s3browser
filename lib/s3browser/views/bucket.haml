@@ -11,10 +11,22 @@
   %table.table.table-bordered.table-striped.table-condensed
     %thead
       %tr
-        %th Key
-        %th Size
-        %th Type
-        %th Last Modified
+        %th
+          %a{ href: sort_url('key') }
+            Key
+            %i{ class: 'fa ' + sort_icon('key') }
+        %th
+          %a{ href: sort_url('size') }
+            Size
+            %i{ class: 'fa ' + sort_icon('size') }
+        %th
+          %a{ href: sort_url('content_type') }
+            Type
+            %i{ class: 'fa ' + sort_icon('content_type') }
+        %th
+          %a{ href: sort_url('last_modified') }
+            Last Modified
+            %i{ class: 'fa ' + sort_icon('last_modified') }
     %tbody
       -objects.each do |obj|
         %tr
