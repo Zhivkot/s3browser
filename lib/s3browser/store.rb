@@ -14,8 +14,8 @@ module S3Browser
     end
 
     def add(bucket, object)
-      object[:bucket] = bucket
       # TODO Can be optimized to do a bulk index every X requests
+      object[:bucket] = bucket
       client.index(index: index, type: 'objects', id: object[:key], body: object)
     end
 
@@ -25,6 +25,10 @@ module S3Browser
       else
         raise
       end
+    end
+
+    def search(bucket, term)
+      client.search(index: index, type: 'objects', q: "bucket:#{bucket} AND (key:#{term} OR key.raw:#{term})")['hits']['hits'].map {|val| val['_source']}
     end
 
     def buckets
@@ -85,6 +89,16 @@ module S3Browser
           index: {
             number_of_shards: 1,
             number_of_replicas: 0
+          },
+          analysis: {
+            analyzer: {
+              filename: {
+                type: :custom,
+                char_filter: [  ],
+                tokenizer: :standard,
+                filter: [ :word_delimiter, :standard, :lowercase, :stop ]
+              }
+            }
           }
         },
         mappings: mappings
@@ -123,7 +137,14 @@ module S3Browser
             },
             key: {
               type: :string,
-              index: :not_analyzed
+              index: :analyzed,
+              analyzer: :filename,
+              fields: {
+                raw: {
+                  type: :string,
+                  index: :not_analyzed
+                }
+              }
             },
             size: {
               type: :integer
