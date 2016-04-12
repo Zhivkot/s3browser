@@ -10,7 +10,6 @@ module S3Browser
 
     def initialize(index = 's3browser')
       @index = index
-      # TODO Run this on setup, not every time the store is initialized
       check_index
     end
 
