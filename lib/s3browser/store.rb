@@ -10,6 +10,7 @@ module S3Browser
 
     def initialize(index = 's3browser')
       @index = index
+      # TODO Run this on setup, not every time the store is initialized
       check_index
     end
 
@@ -90,7 +91,9 @@ module S3Browser
       if options[:term]
         body[:query][:bool][:must] = {
           simple_query_string: {
-            query: "key:#{options[:term]} OR key.raw:#{options[:term]}"
+            fields: [ 'key', 'key.raw' ],
+            default_operator: 'OR',
+            query: options[:term]
           }
         }
       end
