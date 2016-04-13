@@ -26,7 +26,35 @@ Or install it yourself as:
 
 ## Usage
 
-Not sure yet :)
+Here's an example config.ru for booting S3Browser::Server in your choice of Rack server:
+
+```ruby
+# config.ru
+require 's3browser/server'
+run S3Browser::Server
+```
+
+You can mount S3Browser to existing Rack (Sinatra) application as well:
+
+```ruby
+# config.ru
+require 'your_app'
+
+require 's3browser/server'
+run Rack::URLMap.new('/' => Sinatra::Application, '/s3browser' => S3Browser::Server)
+```
+
+Run the fetcher
+
+```bash
+bundle exec rake fetch
+```
+
+Run the server
+
+```bash
+bundle exec rake server
+```
 
 ## Development
 
