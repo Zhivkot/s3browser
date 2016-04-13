@@ -44,16 +44,23 @@ require 's3browser/server'
 run Rack::URLMap.new('/' => Sinatra::Application, '/s3browser' => S3Browser::Server)
 ```
 
+To run S3Browser rake files, require the tasks file:
+
+```ruby
+# Rakefile
+require 's3browser/gem_tasks'
+```
+
 Run the fetcher
 
 ```bash
-bundle exec rake fetch
+bundle exec rake s3browser:fetch
 ```
 
 Run the server
 
 ```bash
-bundle exec rake server
+bundle exec rake s3browser:server
 ```
 
 ## Development
