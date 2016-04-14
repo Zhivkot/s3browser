@@ -35,4 +35,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'haml'
   spec.add_dependency 'highline'
   spec.add_dependency 'dotenv'
+  spec.add_dependency 'shoryuken'
 end
