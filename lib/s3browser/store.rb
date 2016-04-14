@@ -16,6 +16,7 @@ module S3Browser
     def add(bucket, object)
       # TODO Can be optimized to do a bulk index every X requests
       object[:bucket] = bucket
+      object[:last_modified] = object[:last_modified].to_i
       client.index(index: index, type: 'objects', id: object[:key], body: object)
     end
 

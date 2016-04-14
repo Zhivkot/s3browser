@@ -12,7 +12,6 @@ module S3Browser
         })
 
         info = info.to_h.merge(object.to_h)
-        info[:last_modified] = info[:last_modified].to_i
         store.add bucket, info
       end
     end
