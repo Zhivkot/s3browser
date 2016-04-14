@@ -3,10 +3,13 @@
 The S3Browser is a simple wrapper around Amazon's [S3 Service](https://aws.amazon.com/s3/).
 Apart from listing files and managing, S3 doesn't give you a lot of functionality.
 
-This wrapper gives you two killer functions:
+This wrapper gives you a couple of killer functions:
 
 * [x] Search
 * [x] Sorting
+* [ ] Automatically update file information
+* [ ] Upload files
+* [ ] Download files
 
 ## Installation
 
@@ -62,6 +65,76 @@ Run the server
 ```bash
 bundle exec rake s3browser:server
 ```
+
+## Real time updates
+
+S3 buckets can be configured to send [Event Notifications](http://docs.aws.amazon.com/AmazonS3/latest/dev/NotificationHowTo.html)
+when certain events happen in a bucket.
+
+### Setup
+
+Run `bundle exec rake s3browser:setup` to ensure the correct ENV variables are set, and that your AWS setup is correct.
+
+It will:
+
+1. Record the neccesary ENV variables:
+  * AWS_ACCESS_KEY_ID
+  * AWS_SECRET_ACCESS_KEY
+  * AWS_REGION
+  * AWS_S3_BUCKET
+  * AWS_SQS_QUEUE
+2. Create the SQS queue, with the correct permissions
+3. Create the S3 bucket, with the correct notification configuration
+
+To do the setup, the IAM profile you're using to run the script should have the following policy in place:
+
+```javascript
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "S3BrowserFullAccess",
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject",
+                "s3:GetObjectVersion",
+                "s3:ListBucket",
+                "s3:PutObject",
+                "s3:CreateBucket",
+                "s3:PutBucketNotification"
+            ],
+            "Resource": [
+                "arn:aws:s3:::*",
+                "arn:aws:s3:::*/*"
+            ]
+        },
+        {
+            "Sid": "Stmt1460660107000",
+            "Effect": "Allow",
+            "Action": [
+                "sqs:DeleteMessage",
+                "sqs:ReceiveMessage",
+                "sqs:CreateQueue",
+                "sqs:GetQueueUrl",
+                "sqs:GetQueueAttributes",
+                "sqs:SetQueueAttributes"
+            ],
+            "Resource": [
+                "arn:aws:sqs:*"
+            ]
+        }
+    ]
+}
+```
+
+After setting up the queue and the bucket, a policy **without** the following actions can be used:
+
+* s3:CreateBucket
+* s3:PutBucketNotification
+* sqs:CreateQueue
+* sqs:GetQueueUrl
+* sqs:GetQueueAttributes
+* sqs:SetQueueAttributes
 
 ## Development
 
