@@ -14,8 +14,8 @@ module S3Browser
           key    = record['s3']['object']['key']
 
           info = s3.head_object({ bucket: bucket, key: key })
+          info = info.to_h.merge(record['s3']['object'])
 
-          info = info.to_h
           store.add bucket, info
         end
       else
