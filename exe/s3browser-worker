@@ -1,0 +1,25 @@
+#!/usr/bin/env ruby
+
+begin
+  require 'shoryuken/cli'
+  require 's3browser/worker'
+rescue LoadError
+  require 'rubygems'
+  require 'shoryuken/cli'
+  require 's3browser/worker'
+end
+
+unless ARGV.include?('-C')
+  ARGV << '-C'
+  ARGV << 'shoryuken-config.yml'
+end
+
+# This comes from the shoryuken CLI
+begin
+  Shoryuken::CLI.instance.run(ARGV)
+rescue => e
+  raise e if $DEBUG
+  STDERR.puts e.message
+  STDERR.puts e.backtrace.join("\n")
+  exit 1
+end
