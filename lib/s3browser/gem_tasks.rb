@@ -1,6 +1,7 @@
 require 'rake'
 require 'rake/tasklib'
 require 's3browser'
+require 'yaml'
 
 module S3Browser
   class GemTasks < ::Rake::TaskLib
@@ -43,6 +44,10 @@ module S3Browser
           if cli.agree('Should we set up SQS notification on the S3 bucket for you (y/n)?') { |q| q.default = 'y' }
             setup_bucket
             setup_sqs
+          end
+
+          if cli.agree('Do you want to generate a Shoryuken worker config (y/n)?') { |q| q.default = 'y' }
+            setup_worker_config
           end
         end
       end
@@ -114,6 +119,17 @@ module S3Browser
         }
       })
       cli.say 'Set the bucket to push notifications to SQS'
+    end
+
+    def setup_worker_config
+      config = {
+        'concurrency': 1,
+        'delay': 300,
+        'queues': [ ENV['AWS_SQS_QUEUE'] ]
+      }
+
+      cli.say 'Writing shoryuken-config.yml'
+      File.open('shoryuken-config.yml', 'w') { |file| file.write(config.to_yaml) }
     end
 
     def sqs
