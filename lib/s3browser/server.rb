@@ -8,30 +8,29 @@ module S3Browser
       set :port, 9292
       set :bind, '0.0.0.0'
       enable :logging
+      set :store do
+        S3Browser::Store.new
+      end
     end
 
     get '/' do
-      buckets = store.buckets
+      buckets = settings.store.buckets
       haml :index, locals: { title: 'S3Browser', buckets: buckets }
     end
 
     get '/:bucket' do |bucket|
       params['q'] = nil if params['q'] == ''
-      objects = store.get(bucket, term: params['q'], sort: params['s'], direction: params['d'])
-
+      objects = settings.store.get(bucket, term: params['q'], sort: params['s'], direction: params['d'])
       haml :bucket, locals: { title: bucket, bucket: bucket, objects: objects, q: params['q'] }
     end
 
     helpers do
-      def store
-        @@store ||= Store.new
-      end
-
       def bucket
         ENV['AWS_S3_BUCKET']
       end
 
       def sort_url(field)
+        field = field.to_s
         url = '?s=' + field
         if params['s'] == field
           if params['d'] == 'desc'
@@ -44,6 +43,7 @@ module S3Browser
       end
 
       def sort_icon(field)
+        field = field.to_s
         if params['s'] == field
           if ['asc', 'desc'].include?(params['d'])
             'fa-sort-' + params['d']
