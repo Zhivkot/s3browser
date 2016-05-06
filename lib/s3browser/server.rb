@@ -4,13 +4,16 @@ require 's3browser/store'
 
 module S3Browser
   class Server < Sinatra::Base
+    class Store < S3Browser::Store
+      plugin :es
+      plugin :images
+    end
+
     configure :development do
       set :port, 9292
       set :bind, '0.0.0.0'
       enable :logging
-      set :store do
-        S3Browser::Store.new
-      end
+      set :store, Store.new
     end
 
     get '/' do
@@ -20,7 +23,7 @@ module S3Browser
 
     get '/:bucket' do |bucket|
       params['q'] = nil if params['q'] == ''
-      objects = settings.store.get(bucket, term: params['q'], sort: params['s'], direction: params['d'])
+      objects = settings.store.objects(bucket, term: params['q'], sort: params['s'], direction: params['d'])
       haml :bucket, locals: { title: bucket, bucket: bucket, objects: objects, q: params['q'] }
     end
 

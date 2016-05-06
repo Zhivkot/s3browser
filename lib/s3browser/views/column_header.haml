@@ -1,4 +1,4 @@
 %th
   %a{ href: sort_url(field) }
-    = (defined?(field_name) ? field_name : field.capitalize.sub('_', ' '))
+    = (defined?(field_name) ? field_name : field.to_s.capitalize.sub('_', ' '))
     %i{ class: 'fa ' + sort_icon(field) }

@@ -4,6 +4,11 @@ require 's3browser/store'
 
 module S3Browser
   class Fetch
+    class Store < S3Browser::Store
+      plugin :es
+      plugin :images
+    end
+
     def run
       s3.list_objects(bucket: bucket).contents.map do |object|
         info = s3.head_object({

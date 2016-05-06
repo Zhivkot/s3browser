@@ -11,14 +11,14 @@
   %table.table.table-bordered.table-striped.table-condensed
     %thead
       %tr
-        = haml :column_header, locals: { field: 'key' }
-        = haml :column_header, locals: { field: 'size' }
-        = haml :column_header, locals: { field: 'content_type', field_name: 'Type' }
-        = haml :column_header, locals: { field: 'last_modified' }
+        = haml :column_header, locals: { field: :key }
+        = haml :column_header, locals: { field: :size }
+        = haml :column_header, locals: { field: :content_type, field_name: 'Type' }
+        = haml :column_header, locals: { field: :last_modified }
     %tbody
       -objects.each do |obj|
         %tr
-          %td= obj['key']
-          %td= obj['size']
-          %td= obj['content_type']
-          %td= Time.at(obj['last_modified']).strftime('%Y-%m-%d %H:%M:%S')
+          %td= obj[:key]
+          %td= obj[:size]
+          %td= obj[:content_type]
+          %td= Time.at(obj[:last_modified]).strftime('%Y-%m-%d %H:%M:%S')

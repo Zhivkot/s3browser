@@ -7,6 +7,11 @@ module S3Browser
 
     shoryuken_options queue: ENV['AWS_SQS_QUEUE'], body_parser: :json, auto_delete: true
 
+    class Store < S3Browser::Store
+      plugin :es
+      plugin :images
+    end
+
     def perform(sqs_msg, body)
       if body['Records']
         body['Records'].each do |record|
@@ -25,7 +30,7 @@ module S3Browser
 
     private
     def store
-      @store ||= S3Browser::Store.new
+      @store ||= Store.new
     end
 
     private

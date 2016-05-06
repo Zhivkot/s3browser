@@ -1,194 +1,106 @@
-require 'elasticsearch'
-require 'logger'
-
-# Use the index for client or app scope: localhost:9200/jadeit, localhost:9200/s3browser
-# The type stays objects: localhost:9200/jadeit/objects, localhost:9200/s3browser/objects
+require 'aws-sdk'
 
 module S3Browser
   class Store
-    attr_reader :index
+    class StoreError < StandardError; end
 
-    def initialize(index = 's3browser')
-      @index = index
-      check_index
-    end
+    # A thread safe cache class, offering only #[] and #[]= methods,
+    # each protected by a mutex.
+    # Ripped off from Roda - https://github.com/jeremyevans/roda
+    class StoreCache
+      # Create a new thread safe cache.
+      def initialize
+        @mutex = Mutex.new
+        @hash = {}
+      end
 
-    def add(bucket, object)
-      # TODO Can be optimized to do a bulk index every X requests
-      object[:bucket] = bucket
-      object[:last_modified] = object[:last_modified].to_i
-      client.index(index: index, type: 'objects', id: object[:key], body: object)
-    end
+      # Make getting value from underlying hash thread safe.
+      def [](key)
+        @mutex.synchronize{@hash[key]}
+      end
 
-    def get(bucket, options)
-      body = get_body(bucket, options)
-      if options[:key]
-        raise
-      else
-        client.search(index: index, type: 'objects', body: body)['hits']['hits'].map {|val| val['_source']}
+      # Make setting value in underlying hash thread safe.
+      def []=(key, value)
+        @mutex.synchronize{@hash[key] = value}
       end
     end
 
-    def search(bucket, term, options = {})
-      get(bucket, {term: term}.merge(options))
-    end
+    # Ripped off from Roda - https://github.com/jeremyevans/roda
+    module StorePlugins
+      # Stores registered plugins
+      @plugins = StoreCache.new
 
-    def buckets
-      client.search(index: index, type: 'objects', body: {
-        query: { match_all: {} },
-        size: 0,
-        aggregations: {
-          buckets: {
-            terms: {
-              field: :bucket,
-              size: 0,
-              order: { '_term' => :asc }
-            }
-          }
-        }
-      })['aggregations']['buckets']['buckets'].map {|val| val['key'] }
-    end
+      # If the registered plugin already exists, use it.  Otherwise,
+      # require it and return it.  This raises a LoadError if such a
+      # plugin doesn't exist, or a StoreError if it exists but it does
+      # not register itself correctly.
+      def self.load_plugin(name)
+        h = @plugins
+        unless plugin = h[name]
+          require "s3browser/plugins/#{name}"
+          raise StoreError, "Plugin #{name} did not register itself correctly in S3Browser::Store::StorePlugins" unless plugin = h[name]
+        end
+        plugin
+      end
 
-    def indices
-      lines = client.cat.indices
-      lines.split("\n").map do |line|
-        line = Hash[*[
-          :health,
-          :state,
-          :index,
-          :primaries ,
-          :replicas,
-          :count,
-          :deleted,
-          :total_size,
-          :size
-        ].zip(line.split(' ')).flatten]
+      # Register the given plugin with Store, so that it can be loaded using #plugin
+      # with a symbol.  Should be used by plugin files. Example:
+      #
+      #   S3Browser::Store::StorePlugins.register_plugin(:plugin_name, PluginModule)
+      def self.register_plugin(name, mod)
+        @plugins[name] = mod
+      end
 
-        [:primaries, :replicas, :count, :deleted].each {|key| line[key] = line[key].to_i}
+      module Base
+        module ClassMethods
+          # Load a new plugin into the current class.  A plugin can be a module
+          # which is used directly, or a symbol represented a registered plugin
+          # which will be required and then used. Returns nil.
+          #
+          #   Store.plugin PluginModule
+          #   Store.plugin :csrf
+          def plugin(plugin, *args, &block)
+            raise StoreError, "Cannot add a plugin to a frozen Store class" if frozen?
+            plugin = StorePlugins.load_plugin(plugin) if plugin.is_a?(Symbol)
+            plugin.load_dependencies(self, *args, &block) if plugin.respond_to?(:load_dependencies)
+            include(plugin::InstanceMethods) if defined?(plugin::InstanceMethods)
+            extend(plugin::ClassMethods) if defined?(plugin::ClassMethods)
+            plugin.configure(self, *args, &block) if plugin.respond_to?(:configure)
+            nil
+          end
+        end
 
-        line
+        module InstanceMethods
+          def initialize(bucket = 's3browser')
+          end
+
+          def add(bucket, object)
+            nil
+          end
+
+          def objects(bucket, options)
+            s3.list_objects(bucket: bucket).contents.map do |object|
+              object.to_h.merge(bucket: bucket)
+            end
+          end
+
+          def search(bucket, term, options = {})
+            []
+          end
+
+          def buckets
+            s3.list_buckets.buckets
+          end
+
+          private
+          def s3
+            @s3 ||= Aws::S3::Client.new
+          end
+        end
       end
     end
 
-    private
-    def get_body(bucket, options = {})
-      body = {
-        query: {
-          bool: {
-            filter: {
-              terms: {
-                bucket: [ bucket ]
-              }
-            }
-          }
-        }
-      }
-
-      # Sort using the raw field
-      options[:sort] = 'key.raw' if options[:sort] == 'key'
-      body[:sort] = { options[:sort] => options[:direction] ? options[:direction] : 'asc'} if options[:sort]
-
-      if options[:term]
-        body[:query][:bool][:must] = {
-          simple_query_string: {
-            fields: [ 'key', 'key.raw' ],
-            default_operator: 'OR',
-            query: options[:term]
-          }
-        }
-      end
-
-      body
-    end
-
-    private
-    def client
-      @client ||= ::Elasticsearch::Client.new(client_options)
-    end
-
-    private
-    def client_options
-      {
-        log: true,
-        logger: Logger.new(STDOUT),
-        host: ENV['ELASTICSEARCH_URL'] || 'http://localhost:9200'
-      }
-    end
-
-    private
-    def check_index
-      client.indices.create index: index, body: {
-        settings: {
-          index: {
-            number_of_shards: 1,
-            number_of_replicas: 0
-          },
-          analysis: {
-            analyzer: {
-              filename: {
-                type: :custom,
-                char_filter: [  ],
-                tokenizer: :standard,
-                filter: [ :word_delimiter, :standard, :lowercase, :stop ]
-              }
-            }
-          }
-        },
-        mappings: mappings
-      }
-    rescue Elasticsearch::Transport::Transport::Errors::BadRequest => e
-    end
-
-    private
-    def mappings
-      {
-        objects: {
-          _timestamp: {
-            enabled: false
-          },
-          properties: {
-            accept_ranges: {
-              type: :string,
-              index: :not_analyzed
-            },
-            last_modified: {
-              type: :date
-            },
-            content_length: {
-              type: :integer
-            },
-            etag: {
-              type: :string,
-              index: :not_analyzed
-            },
-            content_type: {
-              type: :string,
-              index: :not_analyzed
-            },
-            metadata: {
-              type: :nested
-            },
-            key: {
-              type: :string,
-              index: :analyzed,
-              analyzer: :filename,
-              fields: {
-                raw: {
-                  type: :string,
-                  index: :not_analyzed
-                }
-              }
-            },
-            size: {
-              type: :integer
-            },
-            storage_class: {
-              type: :string,
-              index: :not_analyzed
-            }
-          }
-        }
-      }
-    end
+    extend StorePlugins::Base::ClassMethods
+    plugin StorePlugins::Base
   end
 end
