@@ -7,6 +7,7 @@ module S3Browser
     class Store < S3Browser::Store
       plugin :es
       plugin :images
+      plugin :upload
     end
 
     configure :development do
@@ -25,6 +26,13 @@ module S3Browser
       params['q'] = nil if params['q'] == ''
       objects = settings.store.objects(bucket, term: params['q'], sort: params['s'], direction: params['d'])
       haml :bucket, locals: { title: bucket, bucket: bucket, objects: objects, q: params['q'] }
+    end
+
+    post '/upload' do
+      if params['upload']
+        settings.store.upload params['upload']
+      end
+      redirect back
     end
 
     helpers do

@@ -1,24 +1,55 @@
-.panel.panel-primary
-  .panel-heading
-    Objects
-  .panel-body
-    %form.form-horizontal{method: 'get', action: "/#{bucket}"}
-      .form-group
-        .col-md-11
-          %input.form-control{ type: 'text', name: 'q', placeholder: 'Search', value: q }
-        .col-md-1
-          %button.btn.btn-default.btn-block{ type: 'submit' } Go!
-  %table.table.table-bordered.table-striped.table-condensed
-    %thead
-      %tr
-        = haml :column_header, locals: { field: :key }
-        = haml :column_header, locals: { field: :size }
-        = haml :column_header, locals: { field: :content_type, field_name: 'Type' }
-        = haml :column_header, locals: { field: :last_modified }
-    %tbody
-      -objects.each do |obj|
-        %tr
-          %td= obj[:key]
-          %td= obj[:size]
-          %td= obj[:content_type]
-          %td= Time.at(obj[:last_modified]).strftime('%Y-%m-%d %H:%M:%S')
+- if settings.store.respond_to? :upload
+  .row
+    .col-md-12
+      %button.btn.btn-primary{ 'data-toggle' => 'modal', 'data-target' => '#upload-modal'}
+        Upload
+
+%hr
+
+.row
+  .col-md-12
+    .panel.panel-primary
+      .panel-heading
+        Objects
+      .panel-body
+        %form.form-horizontal{method: 'get', action: "/#{bucket}"}
+          .form-group
+            .col-md-11
+              %input.form-control{ type: 'text', name: 'q', placeholder: 'Search', value: q }
+            .col-md-1
+              %button.btn.btn-default.btn-block{ type: 'submit' } Go!
+      %table.table.table-bordered.table-striped.table-condensed.table-hover
+        %thead
+          %tr
+            = haml :column_header, locals: { field: :key }
+            = haml :column_header, locals: { field: :size }
+            = haml :column_header, locals: { field: :content_type, field_name: 'Type' }
+            = haml :column_header, locals: { field: :last_modified }
+            %th
+              Thumbnail
+        %tbody
+          -objects.each do |obj|
+            %tr
+              %td= obj[:key]
+              %td= obj[:size]
+              %td= obj[:content_type]
+              %td= Time.at(obj[:last_modified]).strftime('%Y-%m-%d %H:%M:%S')
+              %td
+                -if obj[:thumbnail]
+                  %img{ src: obj[:thumbnail][:url], width: obj[:thumbnail][:width]}
+
+- if settings.store.respond_to? :upload
+  %form{ enctype: 'multipart/form-data', method: 'post', action: '/upload' }
+    #upload-modal.modal.fade{ tabindex: -1, role: 'dialog' }
+      .modal-dialog
+        .modal-content
+          .modal-header
+            %button.close{ type: 'button', 'data-dismiss' => 'modal', 'aria-label' => 'Close' }
+              %span{ 'aria-hidden' => 'true' } &times;
+            %h4.modal-title Upload
+          .modal-body
+            .form-group
+              %input{ type: 'file', name: 'upload' }
+          .modal-footer
+            %button.btn.btn-default{ type: 'button', 'data-dismiss' => 'modal' } Close
+            %button.btn.btn-primary{ type: 'submit' } Upload
