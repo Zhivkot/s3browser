@@ -13,7 +13,7 @@ module S3Browser
       set :port, 9292
       set :bind, '0.0.0.0'
       enable :logging
-      set :store, Store.new
+      set :store, Store.new('s3browser')
     end
 
     get '/' do

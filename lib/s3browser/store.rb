@@ -71,7 +71,7 @@ module S3Browser
         end
 
         module InstanceMethods
-          def initialize(bucket = 's3browser')
+          def initialize(bucket)
           end
 
           def add(bucket, object)

@@ -5,10 +5,14 @@ module S3Browser
   class Store
     module StorePlugins
       module ES
+        def self.configure(plugin)
+          # TODO Maybe setup and check index here?
+        end
+
         module InstanceMethods
           attr_reader :index
 
-          def initialize(index = 's3browser')
+          def initialize(index)
             @index = index
             check_index
           end
