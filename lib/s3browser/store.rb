@@ -80,7 +80,7 @@ module S3Browser
 
           def objects(bucket, options)
             s3.list_objects(bucket: bucket).contents.map do |object|
-              object.to_h.merge(bucket: bucket)
+              object.to_h.merge(bucket: bucket, url: "http://#{bucket}.s3.amazonaws.com/#{object[:key]}")
             end
           end
 

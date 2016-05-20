@@ -21,6 +21,7 @@ module S3Browser
             # TODO Can be optimized to do a bulk index every X requests
             object[:bucket] = bucket
             object[:last_modified] = object[:last_modified].to_i
+            object[:url] = "http://#{bucket}.s3.amazonaws.com/#{object[:key]}"
             client.index(index: index, type: 'objects', id: object[:key], body: object)
             super(bucket, object)
           end
