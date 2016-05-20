@@ -7,9 +7,9 @@ This wrapper gives you a couple of killer functions:
 
 * [x] Search
 * [x] Sorting
-* [ ] Automatically update file information
-* [ ] Upload files
-* [ ] Download files
+* [x] Automatically update file information
+* [x] Upload files
+* [x] Download files
 
 ## Installation
 
