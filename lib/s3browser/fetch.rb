@@ -33,7 +33,7 @@ module S3Browser
 
     private
     def store
-      @store ||= Store.new
+      @store ||= Store.new('s3browser')
     end
   end
 end
