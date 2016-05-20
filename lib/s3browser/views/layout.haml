@@ -26,6 +26,8 @@
           %h1= title
 
     .container
+      = haml :flash_messages
+
       = yield
 
     %hr

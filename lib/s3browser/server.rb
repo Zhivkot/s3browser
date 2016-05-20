@@ -1,9 +1,13 @@
 require 'sinatra/base'
+require 'rack-flash'
 require 'tilt/haml'
 require 's3browser/store'
 
 module S3Browser
   class Server < Sinatra::Base
+    enable :sessions
+    use Rack::Flash
+
     class Store < S3Browser::Store
       plugin :es
       plugin :images
@@ -30,7 +34,12 @@ module S3Browser
 
     post '/upload' do
       if params['upload']
-        settings.store.upload params['upload']
+        begin
+          settings.store.upload params['upload']
+          flash[:success] = 'File uploaded'
+        rescue
+          flash[:error] = 'Could not upload the file'
+        end
       end
       redirect back
     end

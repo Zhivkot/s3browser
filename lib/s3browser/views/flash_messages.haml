@@ -1,0 +1,12 @@
+- if f_error = flash[:error]
+  .alert.alert-danger{ role: 'alert' }
+    = f_error
+- if f_warning = flash[:warning]
+  .alert.alert-warning{ role: 'alert' }
+    = f_warning
+- if f_success = flash[:success]
+  .alert.alert-success{ role: 'alert' }
+    = f_success
+- if f_info = flash[:info]
+  .alert.alert-info{ role: 'alert' }
+    = f_info
