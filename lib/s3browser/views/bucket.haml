@@ -1,23 +1,21 @@
-- if settings.store.respond_to? :upload
-  .row
-    .col-md-12
-      %button.btn.btn-primary{ 'data-toggle' => 'modal', 'data-target' => '#upload-modal'}
-        Upload
-
-%hr
-
 .row
   .col-md-12
     .panel.panel-primary
       .panel-heading
-        Objects
+        = bucket
       .panel-body
-        %form.form-horizontal{method: 'get', action: "/#{bucket}"}
-          .form-group
-            .col-md-11
-              %input.form-control{ type: 'text', name: 'q', placeholder: 'Search', value: q }
-            .col-md-1
-              %button.btn.btn-default.btn-block{ type: 'submit' } Go!
+        .col-md-10
+          %form.form-horizontal{method: 'get', action: "/#{bucket}"}
+            .form-group
+              .input-group
+                %input.form-control{ type: 'text', name: 'q', placeholder: 'Search', value: q }
+                %span.input-group-btn
+                  %button.btn.btn-default{ type: 'submit' } Go!
+        .col-md-2
+          - if settings.store.respond_to? :upload
+            %button.btn.btn-primary.btn-block{ 'type' => 'button', 'data-toggle' => 'modal', 'data-target' => '#upload-modal'}
+              Upload
+
       %table.table.table-bordered.table-striped.table-condensed.table-hover
         %thead
           %tr
