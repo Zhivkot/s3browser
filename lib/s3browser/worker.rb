@@ -5,6 +5,8 @@ module S3Browser
   class Worker
     include Shoryuken::Worker
 
+    raise 'Unconfigured' unless ENV['AWS_REGION']
+
     shoryuken_options queue: ENV['AWS_SQS_QUEUE'], body_parser: :json, auto_delete: true
 
     class Store < S3Browser::Store

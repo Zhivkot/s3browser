@@ -4,6 +4,8 @@ require 's3browser/store'
 
 module S3Browser
   class Fetch
+    raise 'Unconfigured' unless ENV['AWS_REGION']
+
     class Store < S3Browser::Store
       plugin :es
       plugin :images

@@ -7,6 +7,7 @@ module S3Browser
   class Server < Sinatra::Base
     enable :sessions
     use Rack::Flash
+    raise 'Unconfigured' unless ENV['AWS_REGION']
 
     class Store < S3Browser::Store
       plugin :es
