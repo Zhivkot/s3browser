@@ -41,7 +41,7 @@ module S3Browser
           end
 
           def buckets
-            client.search(index: index, type: 'objects', body: {
+            buckets = client.search(index: index, type: 'objects', body: {
               query: { match_all: {} },
               size: 0,
               aggregations: {
@@ -54,6 +54,8 @@ module S3Browser
                 }
               }
             })['aggregations']['buckets']['buckets'].map {|val| val['key'] }
+            return buckets unless buckets.empty?
+            super
           end
 
           def indices

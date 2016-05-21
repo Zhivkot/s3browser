@@ -71,9 +71,6 @@ module S3Browser
         end
 
         module InstanceMethods
-          def initialize(bucket)
-          end
-
           def add(bucket, object)
             nil
           end
@@ -89,7 +86,7 @@ module S3Browser
           end
 
           def buckets
-            s3.list_buckets.buckets
+            s3.list_buckets.buckets.map {|val| val['name'] }
           end
 
           private
