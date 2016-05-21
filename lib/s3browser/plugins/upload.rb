@@ -5,10 +5,9 @@ module S3Browser
     module StorePlugins
       module Upload
         module InstanceMethods
-          def upload(file)
+          def upload(bucket, file)
             filename = file[:filename]
             file     = file[:tempfile]
-            bucket   = 's3browser'
 
             s3 = Aws::S3::Resource.new
             s3.bucket(bucket).object(filename).upload_file(file.path)

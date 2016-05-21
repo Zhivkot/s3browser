@@ -32,13 +32,13 @@ module S3Browser
       haml :bucket, locals: { title: bucket, bucket: bucket, objects: objects, q: params['q'] }
     end
 
-    post '/upload' do
+    post '/upload/:bucket' do |bucket|
       if params['upload']
         begin
-          settings.store.upload params['upload']
+          settings.store.upload bucket, params['upload']
           flash[:success] = 'File uploaded'
-        rescue
-          flash[:error] = 'Could not upload the file'
+        rescue StandardError => e
+          flash[:error] = 'Could not upload the file: ' + e.message
         end
       end
       redirect back
