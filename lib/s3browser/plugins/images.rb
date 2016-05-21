@@ -11,8 +11,7 @@ module S3Browser
           end
 
           def objects(bucket, options)
-            result = super(bucket, options)
-            result.map do |elm|
+            super(bucket, options).map do |elm|
               elm[:thumbnail] = {
                 url: "http://#{bucket}.s3.amazonaws.com/#{elm[:key]}",
                 width: 200
@@ -22,7 +21,8 @@ module S3Browser
           end
 
           def handle?(object)
-            object[:content_type] =~ /^image\/.*/
+            return (object[:content_type] =~ /^image\/.*/) unless (object[:content_type].nil? || object[:content_type] == '')
+            object[:key] =~ /jpg|jpeg|png|gif|bmp$/
           end
         end
       end
