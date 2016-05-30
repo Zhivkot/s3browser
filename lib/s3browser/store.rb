@@ -75,6 +75,10 @@ module S3Browser
             nil
           end
 
+          def remove(bucket, key)
+            nil
+          end
+
           def objects(bucket, options)
             s3.list_objects(bucket: bucket).contents.map do |object|
               object.to_h.merge(bucket: bucket, url: "http://#{bucket}.s3.amazonaws.com/#{object[:key]}")

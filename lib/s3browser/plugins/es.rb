@@ -26,6 +26,11 @@ module S3Browser
             super(bucket, object)
           end
 
+          def remove(bucket, key)
+            client.delete(index: index, type: 'objects', id: key, ignore: [404])
+            super(bucket, key)
+          end
+
           def objects(bucket, options)
             body = get_body(bucket, options)
             if options[:key]
