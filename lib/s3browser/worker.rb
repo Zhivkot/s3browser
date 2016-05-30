@@ -14,20 +14,42 @@ module S3Browser
       plugin :images
     end
 
+    def initialize
+      Shoryuken.logger.level = ::Logger::DEBUG if ENV['RACK_ENV'] != 'production'
+    end
+
     def perform(sqs_msg, body)
+      Shoryuken.logger.debug body
+
       if body['Records']
         body['Records'].each do |record|
-          bucket = record['s3']['bucket']['name']
-          key    = record['s3']['object']['key']
-
-          info = s3.head_object({ bucket: bucket, key: key })
-          info = info.to_h.merge(record['s3']['object'])
-
-          store.add bucket, info
+          case record['eventName']
+          when 'ObjectRemoved:Delete'
+            remove record
+          when 'ObjectCreated:Put'
+            add record
+          end
         end
       else
         raise unless body['Event'] == 's3:TestEvent'
       end
+    end
+
+    def add(record)
+      bucket = record['s3']['bucket']['name']
+      key    = record['s3']['object']['key']
+
+      info = s3.head_object({ bucket: bucket, key: key })
+      info = info.to_h.merge(record['s3']['object'])
+
+      store.add bucket, info
+    end
+
+    def remove(record)
+      bucket = record['s3']['bucket']['name']
+      key    = record['s3']['object']['key']
+
+      store.remove bucket, key
     end
 
     private
