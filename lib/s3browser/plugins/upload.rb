@@ -7,10 +7,12 @@ module S3Browser
         module InstanceMethods
           def upload(bucket, file)
             filename = file[:filename]
-            file     = file[:tempfile]
+            tempfile = file[:tempfile]
 
             s3 = Aws::S3::Resource.new
-            s3.bucket(bucket).object(filename).upload_file(file.path)
+            s3.bucket(bucket).object(filename).upload_file(tempfile.path)
+
+            super(bucket, file)
           end
         end
       end
