@@ -29,6 +29,7 @@ Vagrant.configure(2) do |config|
     sudo apt-get install -y elasticsearch
     sudo service elasticsearch stop
     echo "ES_HEAP_SIZE=1g" | sudo tee -a /etc/default/elasticsearch
+    echo "network.host: 0.0.0.0" | sudo tee -a /etc/elasticsearch/elasticsearch.yml
 
     # Dependencies / Utilities
     sudo apt-get install -y screen curl git build-essential
