@@ -3,17 +3,10 @@ module S3Browser
     module StorePlugins
       module Images
         module InstanceMethods
-          def add(bucket, object)
-            return super(bucket, object) unless handle?(object)
-            # TODO Create a thumbnail and make it available
-
-            super(bucket, object)
-          end
-
           def objects(bucket, options)
             super(bucket, options).map do |elm|
               elm[:thumbnail] = {
-                url: "http://#{bucket}.s3.amazonaws.com/#{elm[:key]}",
+                url: "#{thumbnail_url}/#{bucket}/#{elm[:key]}",
                 width: 200
               } if handle?(elm)
               elm
@@ -22,7 +15,15 @@ module S3Browser
 
           def handle?(object)
             return (object[:content_type] =~ /^image\/.*/) unless (object[:content_type].nil? || object[:content_type] == '')
-            object[:key] =~ /jpg|jpeg|png|gif|bmp$/
+            return (object[:type] =~ /^image\/.*/) unless (object[:type].nil? || object[:type] == '')
+            object[:key] =~ /(jpg|jpeg|png|gif|bmp)$/
+          end
+
+          def thumbnail_url
+            @thumbnail_url ||= begin
+              return ENV['S3BROWSER_THUMBNAIL_URL'] if ENV['S3BROWSER_THUMBNAIL_URL']
+              "http://s3-#{ENV['AWS_REGION']}.amazonaws.com"
+            end
           end
         end
       end
