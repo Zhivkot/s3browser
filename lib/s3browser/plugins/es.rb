@@ -21,7 +21,7 @@ module S3Browser
             # TODO Can be optimized to do a bulk index every X requests
             object[:bucket] = bucket
             object[:last_modified] = object[:last_modified].to_i
-            object[:url] = "http://#{bucket}.s3.amazonaws.com/#{object[:key]}"
+            object[:url] = "#{object_url}/#{bucket}/#{object[:key]}"
             client.index(index: index, type: 'objects', id: object[:key], body: object)
             super(bucket, object)
           end
@@ -32,17 +32,13 @@ module S3Browser
           end
 
           def objects(bucket, options)
-            body = get_body(bucket, options)
-            if options[:key]
-              raise 'Not implemented yet'
-            else
-              result = client.search(index: index, type: 'objects', body: body)
-              result['hits']['hits'].map {|val| val['_source'].inject({}){|memo,(k,v)| memo[k.to_sym] = v; memo} }
-            end
+            result = client.search(index: index, type: 'objects', body: search_body(bucket, options))
+            result['hits']['hits'].map {|val| val['_source'].inject({}){|memo,(k,v)| memo[k.downcase.to_sym] = v; memo} }
           end
 
-          def search(bucket, term, options = {})
-            get(bucket, {term: term}.merge(options))
+          def object(bucket, key)
+            result = client.get(index: index, type: 'objects', id: key)
+            result['_source'].inject({}){|memo,(k,v)| memo[k.downcase.to_sym] = v; memo}
           end
 
           def buckets
@@ -85,7 +81,7 @@ module S3Browser
           end
 
           private
-          def get_body(bucket, options = {})
+          def search_body(bucket, options = {})
             body = {
               query: {
                 bool: {

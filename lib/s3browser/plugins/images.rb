@@ -4,13 +4,22 @@ module S3Browser
       module Images
         module InstanceMethods
           def objects(bucket, options)
-            super(bucket, options).map do |elm|
-              elm[:thumbnail] = {
-                url: "#{thumbnail_url}/#{bucket}/#{elm[:key]}",
+            super(bucket, options).map do |object|
+              object[:thumbnail] = {
+                url: "#{thumbnail_url}/#{bucket}/#{object[:key]}",
                 width: 200
-              } if handle?(elm)
-              elm
+              } if handle?(object)
+              object
             end
+          end
+
+          def object(bucket, key)
+            object = super(bucket, key)
+            object[:thumbnail] = {
+              url: "#{thumbnail_url}/#{bucket}/#{object[:key]}",
+              width: 200
+            } if handle?(object)
+            object
           end
 
           def handle?(object)

@@ -2,7 +2,7 @@
   "Version": "2012-10-17",
   "Statement": [
     {
-      "Sid": "example-statement-ID",
+      "Sid": "S3BrowserGenerateSQS",
       "Effect": "Allow",
       "Principal": { "AWS": "*" },
       "Action": [
@@ -10,8 +10,8 @@
       ],
       "Resource": "SQS-queue-ARN",
       "Condition": {
-        "ArnLike": {          
-          "aws:SourceArn": "arn:aws:s3:*:*:bucket-name"    
+        "ArnLike": {
+          "aws:SourceArn": "arn:aws:s3:*:*:bucket-name"
         }
       }
     }

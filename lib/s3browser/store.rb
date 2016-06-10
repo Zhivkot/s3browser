@@ -84,16 +84,23 @@ module S3Browser
 
           def objects(bucket, options)
             s3.list_objects(bucket: bucket).contents.map do |object|
-              object.to_h.merge(bucket: bucket, url: "http://#{bucket}.s3.amazonaws.com/#{object[:key]}")
+              object.to_h.merge(bucket: bucket, url: "#{object_url}/#{bucket}/#{object[:key]}")
             end
           end
 
-          def search(bucket, term, options = {})
-            []
+          def object(bucket, key)
+            s3.head_object(bucket: bucket, key: key)
           end
 
           def buckets
             s3.list_buckets.buckets.map {|val| val['name'] }
+          end
+
+          def object_url
+            @object_url ||= begin
+              return ENV['S3BROWSER_OBJECT_URL'] if ENV['S3BROWSER_OBJECT_URL']
+              "http://s3-#{ENV['AWS_REGION']}.amazonaws.com"
+            end
           end
 
           private
