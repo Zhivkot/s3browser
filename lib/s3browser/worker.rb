@@ -14,7 +14,13 @@ module S3Browser
       plugin :images
     end
 
+    def initialize
+      Shoryuken.logger.level = ::Logger::DEBUG if ENV['RACK_ENV'] != 'production'
+    end
+
     def perform(sqs_msg, body)
+      Shoryuken.logger.debug body
+
       if body['Records']
         body['Records'].each do |record|
           bucket = record['s3']['bucket']['name']
