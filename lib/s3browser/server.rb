@@ -16,8 +16,6 @@ module S3Browser
     end
 
     configure :development do
-      set :port, 9292
-      set :bind, '0.0.0.0'
       enable :logging
       set :store, Store.new('s3browser')
     end
