@@ -22,6 +22,7 @@
             = haml :column_header, locals: { field: :key }
             = haml :column_header, locals: { field: :size }
             = haml :column_header, locals: { field: :content_type, field_name: 'Type' }
+            %th Download
             = haml :column_header, locals: { field: :last_modified }
             %th
               Thumbnail
@@ -29,14 +30,15 @@
           -objects.each do |obj|
             %tr
               %td
-                %a{ target: '_blank', href: obj[:url] }
-                  = obj[:key]
+                %a{ href: "/#{bucket}/#{obj[:key]}" }= obj[:key]
               %td= obj[:size]
               %td= obj[:content_type]
+              %td
+                %a.btn.btn-default{ target: '_blank', href: obj[:url] } Download
               %td= Time.at(obj[:last_modified]).strftime('%Y-%m-%d %H:%M:%S')
               %td
                 -if obj[:thumbnail]
-                  %img{ src: obj[:thumbnail][:url], width: obj[:thumbnail][:width]}
+                  %img.img-response.center-block.img-thumbnail{ src: obj[:thumbnail][:url], width: obj[:thumbnail][:width]}
 
 - if settings.store.respond_to? :upload
   %form{ enctype: 'multipart/form-data', method: 'post', action: '/upload/' + bucket }

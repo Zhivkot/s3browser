@@ -25,13 +25,18 @@ module S3Browser
       haml :index, locals: { title: 'S3Browser', buckets: buckets }
     end
 
-    get '/:bucket' do |bucket|
+    get '/:bucket/?' do |bucket|
       params['q'] = nil if params['q'] == ''
       objects = settings.store.objects(bucket, term: params['q'], sort: params['s'], direction: params['d'])
       haml :bucket, locals: { title: bucket, bucket: bucket, objects: objects, q: params['q'] }
     end
 
-    post '/upload/:bucket' do |bucket|
+    get '/:bucket/:key/?' do |bucket, key|
+      object = settings.store.object(bucket, key)
+      haml :object, locals: { title: key, bucket: bucket, key: key, object: object }
+    end
+
+    post '/upload/:bucket/?' do |bucket|
       if params['upload']
         begin
           settings.store.upload bucket, params['upload']

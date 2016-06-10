@@ -1,0 +1,36 @@
+.row
+  .col-md-12
+    .panel.panel-primary
+      .panel-heading
+        = "#{bucket} / #{key}"
+
+      %table.table.table-hover
+        %tr
+          %th Key
+          %td= object[:key]
+        %tr
+          %th Bucket
+          %td= object[:bucket]
+        %tr
+          %th eTag
+          %td= object[:etag]
+        %tr
+          %th Size
+          %td= object[:size]
+        %tr
+          %th Type
+          %td= object[:content_type]
+        %tr
+          %th Last Modified
+          %td= Time.at(object[:last_modified]).strftime('%Y-%m-%d %H:%M:%S')
+        %tr
+          %th Storage Class
+          %td= object[:storage_class]
+        %tr
+          %td{ colspan: 2}
+            %a.btn.btn-default{ target: '_base', href: object[:url] } Download
+
+-if object[:thumbnail]
+  .row
+    .col-md-12
+      %img.img-response.img-thumbnail.center-block{ src: object[:url] }
