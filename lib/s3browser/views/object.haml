@@ -27,9 +27,12 @@
           %th Storage Class
           %td= object[:storage_class]
         %tr
-          %td{ colspan: 2}
+          %td.text-left
             %a.btn.btn-default{ target: '_base', href: object[:url] } Download
-
+          %td.text-right
+            %form{ method: 'post', action: url("/#{bucket}/#{object[:key]}") }
+              %input{ type: 'hidden', name: '_method', value: 'delete'}
+              %button.btn.btn-warning{ type: 'submit', onclick: 'return confirm("This will completely remove the file.");' } Delete
 -if object[:thumbnail]
   .row
     .col-md-12

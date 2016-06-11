@@ -82,6 +82,9 @@ module S3Browser
           def upload(bucket, file)
           end
 
+          def delete(bucket, file)
+          end
+
           def objects(bucket, options)
             s3.list_objects(bucket: bucket).contents.map do |object|
               object.to_h.merge(bucket: bucket, url: "#{object_url}/#{bucket}/#{object[:key]}")

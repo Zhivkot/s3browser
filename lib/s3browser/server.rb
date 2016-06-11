@@ -5,19 +5,24 @@ require 's3browser/store'
 
 module S3Browser
   class Server < Sinatra::Base
-    enable :sessions
-    use Rack::Flash
     raise 'Unconfigured' unless ENV['AWS_REGION']
+
+    use Rack::Flash
 
     class Store < S3Browser::Store
       plugin :es
       plugin :images
-      plugin :upload
+      plugin :manager
+    end
+
+    configure do
+      enable :sessions
+      enable :method_override
+      set :store, Store.new('s3browser')
     end
 
     configure :development do
       enable :logging
-      set :store, Store.new('s3browser')
     end
 
     get '/' do
@@ -32,8 +37,22 @@ module S3Browser
     end
 
     get '/:bucket/:key/?' do |bucket, key|
-      object = settings.store.object(bucket, key)
+      begin
+        object = settings.store.object(bucket, key)
+      rescue
+        halt(404)
+      end
       haml :object, locals: { title: key, bucket: bucket, key: key, object: object }
+    end
+
+    delete '/:bucket/:key/?' do |bucket, key|
+      begin
+        settings.store.delete(bucket, key)
+        flash[:success] = 'File deleted'
+      rescue StandardError => e
+        flash[:error] = 'Could not remove the file: ' + e.message
+      end
+      redirect back
     end
 
     post '/upload/:bucket/?' do |bucket|

@@ -3,7 +3,7 @@ require 'aws-sdk'
 module S3Browser
   class Store
     module StorePlugins
-      module Upload
+      module Manager
         module InstanceMethods
           def upload(bucket, file)
             filename = file[:filename]
@@ -14,10 +14,17 @@ module S3Browser
 
             super(bucket, file)
           end
+
+          def delete(bucket, file)
+            s3 = Aws::S3::Client.new
+            s3.delete_object(bucket: bucket, key: file)
+
+            super(bucket, file)
+          end
         end
       end
 
-      register_plugin(:upload, Upload)
+      register_plugin(:manager, Manager)
     end
   end
 end

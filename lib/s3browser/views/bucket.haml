@@ -5,7 +5,7 @@
         = bucket
       .panel-body
         .col-md-10
-          %form.form-horizontal{method: 'get', action: "/#{bucket}"}
+          %form.form-horizontal{method: 'get', action: url("/#{bucket}")}
             .form-group
               .input-group
                 %input.form-control{ type: 'text', name: 'q', placeholder: 'Search', value: q }
@@ -30,7 +30,7 @@
           -objects.each do |obj|
             %tr
               %td
-                %a{ href: "/#{bucket}/#{obj[:key]}" }= obj[:key]
+                %a{ href: url("/#{bucket}/#{obj[:key]}") }= obj[:key]
               %td= obj[:size]
               %td= obj[:content_type]
               %td
