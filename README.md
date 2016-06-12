@@ -10,6 +10,7 @@ This wrapper gives you a couple of killer functions:
 * [x] Automatically update file information
 * [x] Upload files
 * [x] Download files
+* [x] Delete files
 
 ## Installation
 
@@ -33,6 +34,7 @@ Here's an example config.ru for booting S3Browser::Server in your choice of Rack
 
 ```ruby
 # config.ru
+#\-o 0.0.0.0 -p 9292
 require 's3browser/server'
 run S3Browser::Server
 ```
@@ -146,6 +148,23 @@ After setting up the queue and the bucket, a policy **without** the following ac
 * sqs:GetQueueUrl
 * sqs:GetQueueAttributes
 * sqs:SetQueueAttributes
+
+## S3Proxy
+
+You might not want to allow public access to your S3 bucket. To work around this, the gem provides a proxy with which the server will fetch the file from S3 and serve it to the client, caching it in between.
+
+It's a simple Sinatra app, so can be mounted on a Rack endpoint as well:
+
+```
+# config.ru
+#\-o 0.0.0.0 -p 9292
+require 's3browser/server'
+require 's3browser/s3proxy'
+
+run Rack::URLMap.new('/s3' => S3Browser::S3Proxy, '/' => S3Browser::Server)
+```
+
+The above example allows you to set the `S3BROWSER_THUMBNAIL_URL` and `S3BROWSER_OBJECT_URL` environmental variables to `/s3` so that you can download and view the files from the browser.
 
 ## Development
 
