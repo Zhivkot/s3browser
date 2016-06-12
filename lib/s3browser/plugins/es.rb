@@ -178,6 +178,10 @@ module S3Browser
                   metadata: {
                     type: :nested
                   },
+                  bucket: {
+                    type: :string,
+                    index: :not_analyzed
+                  },
                   key: {
                     type: :string,
                     index: :analyzed,
