@@ -31,7 +31,7 @@ module S3Browser
             super(bucket, key)
           end
 
-          def objects(bucket, options)
+          def objects(bucket, options = {})
             result = client.search(index: index, type: 'objects', body: search_body(bucket, options))
             result['hits']['hits'].map {|val| val['_source'].inject({}){|memo,(k,v)| memo[k.downcase.to_sym] = v; memo} }
           end

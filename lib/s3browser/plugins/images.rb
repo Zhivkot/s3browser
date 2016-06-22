@@ -3,7 +3,7 @@ module S3Browser
     module StorePlugins
       module Images
         module InstanceMethods
-          def objects(bucket, options)
+          def objects(bucket, options = {})
             super(bucket, options).map do |object|
               object[:thumbnail] = {
                 url: "#{thumbnail_url}/#{bucket}/#{object[:key]}",
