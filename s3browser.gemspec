@@ -14,8 +14,6 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://github.com/jrgns/s3browser"
   spec.license       = "MIT"
 
-  # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
-  # delete this section to allow pushing this gem to any host.
   if spec.respond_to?(:metadata)
     spec.metadata['allowed_push_host'] = "https://rubygems.org"
   else
@@ -37,4 +35,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'highline'
   spec.add_dependency 'dotenv'
   spec.add_dependency 'shoryuken'
+  spec.add_dependency 's3proxy'
 end
