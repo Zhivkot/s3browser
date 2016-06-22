@@ -36,7 +36,7 @@ module S3Browser
       haml :bucket, locals: { title: bucket, bucket: bucket, objects: objects, q: params['q'] }
     end
 
-    get '/:bucket/:key/?' do |bucket, key|
+    get '/:bucket/*' do |bucket, key|
       begin
         object = settings.store.object(bucket, key)
       rescue
