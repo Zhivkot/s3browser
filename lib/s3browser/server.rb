@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'sinatra/base'
 require 'rack-flash'
 require 'tilt/haml'
@@ -39,7 +41,7 @@ module S3Browser
     get '/:bucket/*' do |bucket, key|
       begin
         object = settings.store.object(bucket, key)
-      rescue
+      rescue StandardError
         halt(404)
       end
       haml :object, locals: { title: key, bucket: bucket, key: key, object: object }
@@ -76,11 +78,11 @@ module S3Browser
         field = field.to_s
         url = '?s=' + field
         if params['s'] == field
-          if params['d'] == 'desc'
-            url = url + '&d=asc'
-          else
-            url = url + '&d=desc'
-          end
+          url = if params['d'] == 'desc'
+                  url + '&d=asc'
+                else
+                  url + '&d=desc'
+                end
         end
         url
       end
@@ -88,7 +90,7 @@ module S3Browser
       def sort_icon(field)
         field = field.to_s
         if params['s'] == field
-          if ['asc', 'desc'].include?(params['d'])
+          if %w[asc desc].include?(params['d'])
             'fa-sort-' + params['d']
           else
             'fa-sort-asc'
@@ -99,6 +101,6 @@ module S3Browser
       end
     end
 
-    run! if app_file == $0
+    run! if app_file == $PROGRAM_NAME
   end
 end

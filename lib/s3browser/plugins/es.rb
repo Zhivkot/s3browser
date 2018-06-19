@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'elasticsearch'
 require 'logger'
 
@@ -6,7 +8,7 @@ module S3Browser
     module StorePlugins
       module ES
         def self.configure(plugin)
-          # TODO Maybe setup and check index here?
+          # TODO: Maybe setup and check index here?
         end
 
         module InstanceMethods
@@ -18,7 +20,7 @@ module S3Browser
           end
 
           def add(bucket, object)
-            # TODO Can be optimized to do a bulk index every X requests
+            # TODO: Can be optimized to do a bulk index every X requests
             object[:bucket] = bucket
             object[:last_modified] = object[:last_modified].to_i
             object[:url] = "#{object_url}/#{bucket}/#{object[:key]}"
@@ -33,28 +35,26 @@ module S3Browser
 
           def objects(bucket, options = {})
             result = client.search(index: index, type: 'objects', body: search_body(bucket, options))
-            result['hits']['hits'].map {|val| val['_source'].inject({}){|memo,(k,v)| memo[k.downcase.to_sym] = v; memo} }
+            result['hits']['hits'].map { |val| val['_source'].each_with_object({}) { |(k, v), memo| memo[k.downcase.to_sym] = v; } }
           end
 
-          def object(bucket, key)
+          def object(_bucket, key)
             result = client.get(index: index, type: 'objects', id: key)
-            result['_source'].inject({}){|memo,(k,v)| memo[k.downcase.to_sym] = v; memo}
+            result['_source'].each_with_object({}) { |(k, v), memo| memo[k.downcase.to_sym] = v; }
           end
 
           def buckets
             buckets = client.search(index: index, type: 'objects', body: {
-              query: { match_all: {} },
-              size: 0,
-              aggregations: {
-                buckets: {
-                  terms: {
-                    field: :bucket,
-                    size: 0,
-                    order: { '_term' => :asc }
-                  }
-                }
-              }
-            })['aggregations']['buckets']['buckets'].map {|val| val['key'] }
+                                      query: { match_all: {} },
+                                      aggregations: {
+                                        buckets: {
+                                          terms: {
+                                            field: :bucket,
+                                            order: { '_term' => :asc }
+                                          }
+                                        }
+                                      }
+                                    })['aggregations']['buckets']['buckets'].map { |val| val['key'] }
             return buckets unless buckets.empty?
             super
           end
@@ -62,32 +62,33 @@ module S3Browser
           def indices
             lines = client.cat.indices
             lines.split("\n").map do |line|
-              line = Hash[*[
-                :health,
-                :state,
-                :index,
-                :primaries ,
-                :replicas,
-                :count,
-                :deleted,
-                :total_size,
-                :size
+              line = Hash[*%i[
+                health
+                state
+                index
+                primaries
+                replicas
+                count
+                deleted
+                total_size
+                size
               ].zip(line.split(' ')).flatten]
 
-              [:primaries, :replicas, :count, :deleted].each {|key| line[key] = line[key].to_i}
+              %i[primaries replicas count deleted].each { |key| line[key] = line[key].to_i }
 
               line
             end
           end
 
           private
+
           def search_body(bucket, options = {})
             body = {
               query: {
                 bool: {
                   filter: {
                     terms: {
-                      bucket: [ bucket ]
+                      bucket: [bucket]
                     }
                   }
                 }
@@ -96,12 +97,12 @@ module S3Browser
 
             # Sort using the raw field
             options[:sort] = 'key.raw' if options[:sort] == 'key'
-            body[:sort] = { options[:sort] => options[:direction] ? options[:direction] : 'asc'} if options[:sort]
+            body[:sort] = { options[:sort] => options[:direction] || 'asc' } if options[:sort]
 
             if options[:term]
               body[:query][:bool][:must] = {
                 simple_query_string: {
-                  fields: [ 'key', 'key.raw' ],
+                  fields: ['key', 'key.raw'],
                   default_operator: 'OR',
                   query: options[:term]
                 }
@@ -111,12 +112,10 @@ module S3Browser
             body
           end
 
-          private
           def client
             @client ||= ::Elasticsearch::Client.new(client_options)
           end
 
-          private
           def client_options
             {
               log: true,
@@ -125,7 +124,6 @@ module S3Browser
             }
           end
 
-          private
           def check_index
             client.indices.create index: index, body: {
               settings: {
@@ -137,9 +135,9 @@ module S3Browser
                   analyzer: {
                     filename: {
                       type: :custom,
-                      char_filter: [  ],
+                      char_filter: [],
                       tokenizer: :standard,
-                      filter: [ :word_delimiter, :standard, :lowercase, :stop ]
+                      filter: %i[word_delimiter standard lowercase stop]
                     }
                   }
                 }
@@ -147,15 +145,12 @@ module S3Browser
               mappings: mappings
             }
           rescue Elasticsearch::Transport::Transport::Errors::BadRequest
+            nil
           end
 
-          private
           def mappings
             {
               objects: {
-                _timestamp: {
-                  enabled: false
-                },
                 properties: {
                   accept_ranges: {
                     type: :string,

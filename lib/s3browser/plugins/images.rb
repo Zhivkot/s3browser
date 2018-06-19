@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module S3Browser
   class Store
     module StorePlugins
@@ -5,26 +7,30 @@ module S3Browser
         module InstanceMethods
           def objects(bucket, options = {})
             super(bucket, options).map do |object|
-              object[:thumbnail] = {
-                url: "#{thumbnail_url}/#{bucket}/#{object[:key]}",
-                width: 200
-              } if handle?(object)
+              if handle?(object)
+                object[:thumbnail] = {
+                  url: "#{thumbnail_url}/#{bucket}/#{object[:key]}",
+                  width: 200
+                }
+              end
               object
             end
           end
 
           def object(bucket, key)
             object = super(bucket, key)
-            object[:thumbnail] = {
-              url: "#{thumbnail_url}/#{bucket}/#{object[:key]}",
-              width: 200
-            } if handle?(object)
+            if handle?(object)
+              object[:thumbnail] = {
+                url: "#{thumbnail_url}/#{bucket}/#{object[:key]}",
+                width: 200
+              }
+            end
             object
           end
 
           def handle?(object)
-            return (object[:content_type] =~ /^image\/.*/) unless (object[:content_type].nil? || object[:content_type] == '')
-            return (object[:type] =~ /^image\/.*/) unless (object[:type].nil? || object[:type] == '')
+            return (object[:content_type] =~ %r{^image/.*}) unless [nil, ''].include? object[:content_type].nil?
+            return (object[:type] =~ %r{^image/.*}) unless object[:type].nil? || object[:type] == ''
             object[:key] =~ /(jpg|jpeg|png|gif|bmp)$/
           end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aws-sdk'
 
 module S3Browser
@@ -16,12 +18,12 @@ module S3Browser
 
       # Make getting value from underlying hash thread safe.
       def [](key)
-        @mutex.synchronize{@hash[key]}
+        @mutex.synchronize { @hash[key] }
       end
 
       # Make setting value in underlying hash thread safe.
       def []=(key, value)
-        @mutex.synchronize{@hash[key] = value}
+        @mutex.synchronize { @hash[key] = value }
       end
     end
 
@@ -36,9 +38,9 @@ module S3Browser
       # not register itself correctly.
       def self.load_plugin(name)
         h = @plugins
-        unless plugin = h[name]
+        unless (plugin = h[name])
           require "s3browser/plugins/#{name}"
-          raise StoreError, "Plugin #{name} did not register itself correctly in S3Browser::Store::StorePlugins" unless plugin = h[name]
+          raise StoreError, "Plugin #{name} did not register itself correctly in S3Browser::Store::StorePlugins" unless (plugin = h[name])
         end
         plugin
       end
@@ -60,7 +62,7 @@ module S3Browser
           #   Store.plugin PluginModule
           #   Store.plugin :csrf
           def plugin(plugin, *args, &block)
-            raise StoreError, "Cannot add a plugin to a frozen Store class" if frozen?
+            raise StoreError, 'Cannot add a plugin to a frozen Store class' if frozen?
             plugin = StorePlugins.load_plugin(plugin) if plugin.is_a?(Symbol)
             plugin.load_dependencies(self, *args, &block) if plugin.respond_to?(:load_dependencies)
             include(plugin::InstanceMethods) if defined?(plugin::InstanceMethods)
@@ -71,21 +73,19 @@ module S3Browser
         end
 
         module InstanceMethods
-          def add(bucket, object)
+          def add(_bucket, _object)
             nil
           end
 
-          def remove(bucket, key)
+          def remove(_bucket, _key)
             nil
           end
 
-          def upload(bucket, file)
-          end
+          def upload(bucket, file); end
 
-          def delete(bucket, file)
-          end
+          def delete(bucket, file); end
 
-          def objects(bucket, options = {})
+          def objects(bucket, _options = {})
             s3.list_objects(bucket: bucket).contents.map do |object|
               object.to_h.merge(bucket: bucket, url: "#{object_url}/#{bucket}/#{object[:key]}")
             end
@@ -96,7 +96,7 @@ module S3Browser
           end
 
           def buckets
-            s3.list_buckets.buckets.map {|val| val['name'] }
+            s3.list_buckets.buckets.map { |val| val['name'] }
           end
 
           def object_url
@@ -107,6 +107,7 @@ module S3Browser
           end
 
           private
+
           def s3
             @s3 ||= Aws::S3::Client.new
           end

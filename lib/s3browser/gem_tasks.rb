@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rake'
 require 'rake/tasklib'
 require 's3browser'
@@ -28,40 +30,54 @@ module S3Browser
         end
 
         desc 'Set up the S3Browser'
-        task :setup => :dotenv do
+        task setup: :dotenv do
           require 'highline'
           require 'json'
           require 'aws-sdk'
           require 'time'
           require 'logger'
-          # Aws.config.update(logger: Logger.new($stdout), log_level: :debug, log_formatter: Aws::Log::Formatter.colored)
+          # Aws.config.update(
+          #   logger: Logger.new($stdout),
+          #   log_level: :debug,
+          #   log_formatter: Aws::Log::Formatter.colored
+          # )
 
-
-          if File.exist?('.env') == false || cli.agree('Do you want to update your .env file (y/n)?') { |q| q.default = 'n' }
-            setup_env
-          end
+          setup_env if cli.agree('Do you want to update your .env file (y/n)?') { |q| q.default = 'n' }
 
           if cli.agree('Should we set up SQS notification on the S3 bucket for you (y/n)?') { |q| q.default = 'y' }
             setup_bucket
             setup_sqs
           end
 
-          if cli.agree('Do you want to generate a Shoryuken worker config (y/n)?') { |q| q.default = 'y' }
-            setup_worker_config
-          end
+          setup_worker_config if cli.agree('Do you want to generate a Shoryuken worker config (y/n)?') { |q| q.default = 'y' }
         end
       end
     end
 
     def setup_env
       envs = {}
-      envs[:AWS_ACCESS_KEY_ID] = cli.ask('What is your AWS Access Key ID') { |q| q.validate = /^\w+$/; q.default = ENV['AWS_ACCESS_KEY_ID'] if ENV['AWS_ACCESS_KEY_ID'] }
-      envs[:AWS_SECRET_ACCESS_KEY] = cli.ask('What is your AWS Secret Access Key') { |q| q.validate = /^[\w\/\+]+$/; q.default = ENV['AWS_SECRET_ACCESS_KEY'] if ENV['AWS_SECRET_ACCESS_KEY'] }
-      envs[:AWS_REGION] = cli.ask('What AWS region should the service be located in') { |q| q.validate = /^[a-z]{2}\-[a-z]+\-\d$/; q.default = ENV['AWS_REGION'] if ENV['AWS_REGION'] }
-      envs[:AWS_S3_BUCKET] = cli.ask('What is the name of the S3 bucket to use') { |q| q.validate = /^[^ ]+$/; ; q.default = ENV['AWS_S3_BUCKET'] if ENV['AWS_S3_BUCKET'] }
-      envs[:AWS_SQS_QUEUE] = cli.ask('What is the name of the SQS queue to use') { |q| q.validate = /^[^ ]+$/; ; q.default = ENV['AWS_SQS_QUEUE'] if ENV['AWS_SQS_QUEUE'] }
+      envs[:AWS_ACCESS_KEY_ID] = cli.ask('What is your AWS Access Key ID') do |q|
+        q.validate = /^\w+$/
+        q.default = ENV['AWS_ACCESS_KEY_ID'] if ENV['AWS_ACCESS_KEY_ID']
+      end
+      envs[:AWS_SECRET_ACCESS_KEY] = cli.ask('What is your AWS Secret Access Key') do |q|
+        q.validate = %r{^[\w\/\+]+$}
+        q.default = ENV['AWS_SECRET_ACCESS_KEY'] if ENV['AWS_SECRET_ACCESS_KEY']
+      end
+      envs[:AWS_REGION] = cli.ask('What AWS region should the service be located in') do |q|
+        q.validate = /^[a-z]{2}\-[a-z]+\-\d$/
+        q.default = ENV['AWS_REGION'] if ENV['AWS_REGION']
+      end
+      envs[:AWS_S3_BUCKET] = cli.ask('What is the name of the S3 bucket to use') do |q|
+        q.validate = /^[^ ]+$/
+        q.default = ENV['AWS_S3_BUCKET'] if ENV['AWS_S3_BUCKET']
+      end
+      envs[:AWS_SQS_QUEUE] = cli.ask('What is the name of the SQS queue to use') do |q|
+        q.validate = /^[^ ]+$/
+        q.default = ENV['AWS_SQS_QUEUE'] if ENV['AWS_SQS_QUEUE']
+      end
 
-      envs_string = envs.map {|k,v| "#{k}=#{v}"}.join("\n") + "\n"
+      envs_string = envs.map { |k, v| "#{k}=#{v}" }.join("\n") + "\n"
 
       cli.say 'This is the proposed .env file:'
       cli.say envs_string + "\n"
@@ -79,11 +95,11 @@ module S3Browser
 
     def setup_bucket
       # Ensure that the bucket exists
-      s3.create_bucket({
+      s3.create_bucket(
         bucket: ENV['AWS_S3_BUCKET']
-      })
+      )
       cli.say "Created the S3 bucket: #{ENV['AWS_S3_BUCKET']}"
-    rescue
+    rescue StandardError
       cli.say "Bucket already exists: #{ENV['AWS_S3_BUCKET']}"
     end
 
@@ -106,26 +122,26 @@ module S3Browser
       cli.say 'Created the correct queue policy'
 
       # Ensure that the bucket pushes notifications to the queue
-      s3.put_bucket_notification_configuration({
+      s3.put_bucket_notification_configuration(
         bucket: ENV['AWS_S3_BUCKET'],
         notification_configuration: {
           queue_configurations: [
             {
-              id: "S3BrowserNotification",
+              id: 'S3BrowserNotification',
               queue_arn: queue_arn,
-              events: ['s3:ObjectCreated:*','s3:ObjectRemoved:*']
+              events: ['s3:ObjectCreated:*', 's3:ObjectRemoved:*']
             }
           ]
         }
-      })
+      )
       cli.say 'Set the bucket to push notifications to SQS'
     end
 
     def setup_worker_config
       config = {
-        'concurrency': 1,
-        'delay': 300,
-        'queues': [ ENV['AWS_SQS_QUEUE'] ]
+        'concurrency' => 1,
+        'delay' => 300,
+        'queues' => [ENV['AWS_SQS_QUEUE']]
       }
 
       cli.say 'Writing shoryuken-config.yml'
@@ -145,7 +161,7 @@ module S3Browser
     end
 
     def sqs_policy(bucket_name, queue_arn)
-      folder = File.expand_path File.dirname(__FILE__)
+      folder = __dir__
       policy = JSON.parse(File.read("#{folder}/policy.json"))
       policy['Id'] = Time.now.strftime('%Y%m%dT%H%M%S')
       policy['Statement'][0]['Condition']['ArnLike']['aws:SourceArn'] = "arn:aws:s3:*:*:#{bucket_name}"

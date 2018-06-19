@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'shoryuken'
 require 's3browser/store'
 
@@ -18,7 +20,7 @@ module S3Browser
       Shoryuken.logger.level = ::Logger::DEBUG if ENV['RACK_ENV'] != 'production'
     end
 
-    def perform(sqs_msg, body)
+    def perform(_sqs_msg, body)
       Shoryuken.logger.debug body
 
       if body['Records']
@@ -39,8 +41,13 @@ module S3Browser
       bucket = record['s3']['bucket']['name']
       key    = record['s3']['object']['key']
 
-      info = s3.head_object({ bucket: bucket, key: key })
-      info = info.to_h.merge(record['s3']['object'].inject({}){|memo,(k,v)| memo[k.downcase.to_sym] = v; memo})
+      info = s3.head_object(bucket: bucket, key: key)
+      info = info.to_h.merge(
+        record['s3']['object'].each_with_object({}) do |memo, (k, v)|
+          memo[k.downcase.to_sym] = v
+          memo
+        end
+      )
 
       store.add bucket, info
     end
@@ -53,11 +60,11 @@ module S3Browser
     end
 
     private
+
     def store
       @store ||= Store.new('s3browser')
     end
 
-    private
     def s3
       @s3 ||= Aws::S3::Client.new
     end

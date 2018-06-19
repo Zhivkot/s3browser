@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'sinatra/base'
 require 's3proxy'
 
@@ -9,8 +11,8 @@ module S3Browser
       enable :logging
     end
 
-    get %r{(.+)} do |filename|
-      matches = filename.match(/([^\/]+)\/(.*)/)
+    get(/(.+)/) do |filename|
+      matches = filename.match(%r{([^\/]+)\/(.*)})
       bucket = matches[1]
       key = matches[2]
       send_file proxy_s3_file(bucket, key)
@@ -18,6 +20,6 @@ module S3Browser
 
     helpers ::S3Proxy
 
-    run! if app_file == $0
+    run! if app_file == $PROGRAM_NAME
   end
 end
