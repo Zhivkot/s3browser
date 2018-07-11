@@ -29,9 +29,9 @@ module S3Browser
           end
 
           def handle?(object)
-            return (object[:content_type] =~ %r{^image/.*}) unless [nil, ''].include? object[:content_type].nil?
-            return (object[:type] =~ %r{^image/.*}) unless object[:type].nil? || object[:type] == ''
-            object[:key] =~ /(jpg|jpeg|png|gif|bmp)$/
+            return (object[:content_type] =~ %r{^image/.*}) unless [nil, ''].include? object[:content_type]
+            return (object[:type] =~ %r{^image/.*}) unless [nil, ''].include? object[:type]
+            object[:key] =~ /\.(jpg|jpeg|png|gif|bmp)$/
           end
 
           def thumbnail_url

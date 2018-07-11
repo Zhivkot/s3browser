@@ -23,6 +23,8 @@ module S3Browser
         info = info.to_h.merge(object.to_h)
         store.add bucket, info
       end
+    rescue Aws::S3::Errors::PermanentRedirect
+      puts "Could not connect to bucket #{bucket}"
     end
 
     private
