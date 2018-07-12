@@ -57,6 +57,7 @@ module S3Browser
       key    = record['s3']['object']['key']
 
       store.remove bucket, key
+      # TODO: Remove from S3?
     end
 
     private

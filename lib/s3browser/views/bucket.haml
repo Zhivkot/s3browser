@@ -22,10 +22,10 @@
             = haml :column_header, locals: { field: :key }
             = haml :column_header, locals: { field: :size }
             = haml :column_header, locals: { field: :content_type, field_name: 'Type' }
-            %th Download
             = haml :column_header, locals: { field: :last_modified }
             %th
               Thumbnail
+            %th
         %tbody
           -objects.each do |obj|
             %tr
@@ -33,12 +33,20 @@
                 %a{ href: url("/#{bucket}/#{obj[:key]}") }= obj[:key]
               %td= obj[:size]
               %td= obj[:content_type]
-              %td
-                %a.btn.btn-default{ target: '_blank', href: obj[:url] } Download
               %td= Time.at(obj[:last_modified]).strftime('%Y-%m-%d %H:%M:%S')
               %td
                 -if obj[:thumbnail]
-                  %img.img-response.center-block.img-thumbnail{ src: obj[:thumbnail][:url], width: obj[:thumbnail][:width]}
+                  %a{ href: url("/#{bucket}/#{obj[:key]}") }
+                    %img.img-response.center-block.img-thumbnail{ src: obj[:thumbnail][:url], width: obj[:thumbnail][:width]}
+              %td.text-right
+                %a.btn.btn-default.btn-xs{ target: '_blank', href: obj[:url] }
+                  %i.fa.fa-download
+                  Download
+                %form.form-inline{ method: 'post', action: url("/#{bucket}/#{obj[:key]}") }
+                  %input{ type: 'hidden', name: '_method', value: 'delete'}
+                  %button.btn.btn-warning.btn-xs{ type: 'submit', onclick: 'return confirm("This will completely remove the file.");' }
+                    %i.fa.fa-trash
+                    Delete
 
 - if settings.store.respond_to? :upload
   %form{ enctype: 'multipart/form-data', method: 'post', action: '/upload/' + bucket }

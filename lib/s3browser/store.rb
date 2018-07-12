@@ -73,16 +73,20 @@ module S3Browser
         end
 
         module InstanceMethods
+          # Add an object to the data store
           def add(_bucket, _object)
             nil
           end
 
+          # Remove an object from the data store
           def remove(_bucket, _key)
             nil
           end
 
+          # Upload an object to S3
           def upload(bucket, file); end
 
+          # Delete an object from S3
           def delete(bucket, file); end
 
           def objects(bucket, _options = {})

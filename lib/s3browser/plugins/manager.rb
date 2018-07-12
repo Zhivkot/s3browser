@@ -14,14 +14,14 @@ module S3Browser
             s3 = Aws::S3::Resource.new
             s3.bucket(bucket).object(filename).upload_file(tempfile.path)
 
-            super(bucket, file)
+            super
           end
 
           def delete(bucket, file)
             s3 = Aws::S3::Client.new
             s3.delete_object(bucket: bucket, key: file)
 
-            super(bucket, file)
+            super
           end
         end
       end

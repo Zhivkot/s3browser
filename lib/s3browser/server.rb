@@ -51,10 +51,11 @@ module S3Browser
       begin
         settings.store.delete(bucket, key)
         flash[:success] = 'File deleted'
+        redirect "/#{bucket}"
       rescue StandardError => e
         flash[:error] = 'Could not remove the file: ' + e.message
+        redirect back
       end
-      redirect back
     end
 
     post '/upload/:bucket/?' do |bucket|
